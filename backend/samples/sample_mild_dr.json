@@ -1,0 +1,82 @@
+{
+    "quality": {
+        "grade": "Gradeable",
+        "focusScore": 88.4,
+        "meanIntensity": 135.2,
+        "fovRatio": 78.5,
+        "illuminationUniformity": 85.1,
+        "hasArtifacts": false,
+        "noiseLevel": 14.3,
+        "compositeFocus": 85.0,
+        "status": "Gradeable"
+    },
+    "landmarks": {
+        "odDetected": true,
+        "odConfidence": 0.92,
+        "foveaDetected": true,
+        "foveaConfidence": 0.88
+    },
+    "vessels": {
+        "density": 0.13,
+        "meanTortuosity": 1.35,
+        "branchingPoints": 105
+    },
+    "lesions": {
+        "microaneurysms": 5,
+        "hardExudates": 0,
+        "softExudates": 0,
+        "hemorrhages": {
+            "dot": 2,
+            "blot": 0,
+            "flame": 0,
+            "total": 2
+        },
+        "neovascularization": {
+            "nvdDetected": false,
+            "nveDetected": false,
+            "totalScore": 0.0
+        }
+    },
+    "grading": {
+        "level": 1,
+        "label": "Mild NPDR",
+        "confidence": 88.5,
+        "referable": false,
+        "recommendedAction": "Repeat screening in 6-12 months",
+        "perLevel": [
+            {"level": 0, "label": "No DR", "probability": 8.1},
+            {"level": 1, "label": "Mild NPDR", "probability": 88.5},
+            {"level": 2, "label": "Moderate NPDR", "probability": 3.1},
+            {"level": 3, "label": "Severe NPDR", "probability": 0.2},
+            {"level": 4, "label": "Proliferative DR", "probability": 0.1}
+        ],
+        "calibration": "Well Calibrated",
+        "ece": 0.010,
+        "sensitivity": 92.1,
+        "specificity": 88.4,
+        "cnnLevel": 1,
+        "ruleLevel": 1,
+        "fusionNote": "CNN and ICDR rule-based assessment agree",
+        "icdrCriteria": {
+            "microaneurysmsPresent": true,
+            "hardExudatesPresent": false,
+            "softExudatesPresent": false,
+            "hemorrhagesPresent": true,
+            "neovascularizationPresent": false
+        }
+    },
+    "explainability": {
+        "clinicalUsefulness": 89.2,
+        "usefulnessRating": "Highly Useful",
+        "pathologyOverlap": 62.4,
+        "attentionPrecision": 71.5
+    },
+    "report": {
+        "urgency": "ROUTINE FOLLOW-UP",
+        "keyFindings": [
+            "5 microaneurysms detected",
+            "2 hemorrhages"
+        ]
+    },
+    "processingTime": 28.8
+}

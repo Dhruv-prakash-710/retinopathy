@@ -1,0 +1,262 @@
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Viewer Controls */
+.viewer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-surface-hover);
+}
+
+.layer-toggles {
+  display: flex;
+  gap: 0.5rem;
+  background-color: var(--color-surface-hover);
+  padding: 0.25rem;
+  border-radius: var(--border-radius-md);
+}
+
+.layer-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.layer-btn.active {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grad-CAM Toggle */
+.gradcam-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.gradcam-toggle input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: var(--color-surface-hover);
+  border-radius: 24px;
+  transition: .4s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+  box-shadow: var(--shadow-sm);
+}
+
+.gradcam-toggle input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+.gradcam-toggle input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* Simulated Image Display */
+.image-display-area {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  background-color: #000;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.simulated-fundus-base {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, #b84f2b 0%, #7d1c07 70%, #290400 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+.optic-disc {
+  position: absolute;
+  width: 15%;
+  height: 18%;
+  background-color: #ffd494;
+  border-radius: 50%;
+  right: 15%;
+  top: 45%;
+  filter: blur(2px);
+  opacity: 0.9;
+}
+
+.macula {
+  position: absolute;
+  width: 10%;
+  height: 10%;
+  background-color: #4a0c00;
+  border-radius: 50%;
+  left: 35%;
+  top: 50%;
+  filter: blur(5px);
+}
+
+.layer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.enhanced-layer {
+  background: rgba(255, 255, 255, 0.1);
+  mix-blend-mode: overlay;
+  filter: contrast(1.2) brightness(1.1);
+}
+
+.vessels-layer {
+  /* Simulating vessel segmentation with a radial pattern for demo */
+  background: radial-gradient(circle at 70% 50%, transparent 20%, rgba(255, 0, 0, 0.1) 21%, transparent 22%),
+              radial-gradient(circle at 70% 50%, transparent 40%, rgba(255, 0, 0, 0.1) 41%, transparent 42%);
+  background-size: 200px 200px;
+}
+
+.lesions-layer {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  left: 10%;
+  top: 10%;
+}
+
+.lesion {
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.lesion.ma { /* Microaneurysm */
+  width: 4px;
+  height: 4px;
+  background-color: #ff0000;
+}
+
+.lesion.exudate { /* Hard Exudate */
+  width: 8px;
+  height: 6px;
+  background-color: #ffff00;
+  filter: blur(1px);
+}
+
+.lesion.hemorrhage { /* Hemorrhage */
+  width: 20px;
+  height: 15px;
+  background-color: #8b0000;
+  filter: blur(2px);
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+}
+
+.gradcam-layer {
+  background: radial-gradient(circle at 35% 45%, 
+    rgba(255, 0, 0, 0.6) 0%, 
+    rgba(255, 255, 0, 0.4) 20%, 
+    rgba(0, 255, 0, 0.1) 40%, 
+    transparent 60%);
+  mix-blend-mode: screen;
+  z-index: 10;
+}
+
+/* Clinical Summary Area */
+.grading-box {
+  background-color: var(--color-danger-bg);
+  padding: 1.5rem;
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.grading-level {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.grading-desc {
+  font-weight: 500;
+  color: #991B1B;
+}
+
+.border-b {
+  border-bottom: 1px solid var(--color-surface-hover);
+}
+
+.evidence-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-surface-hover);
+}
+.evidence-item:last-child {
+  border-bottom: none;
+}
+
+.evidence-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.evidence-count {
+  background-color: var(--color-surface-hover);
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.w-full {
+  width: 100%;
+}

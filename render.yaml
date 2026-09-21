@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: retinopathy-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && gunicorn app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+
+  - type: web
+    name: retinopathy-frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    envVars:
+      - key: NODE_VERSION
+        value: 20.x
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: retinopathy-backend
+          envVarKey: RENDER_EXTERNAL_URL

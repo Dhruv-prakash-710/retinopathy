@@ -1,0 +1,225 @@
+/* ══════════════════════════════════════════════
+   SETTINGS — Premium Settings Panel
+   ══════════════════════════════════════════════ */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+}
+
+/* ── Sidebar Nav ── */
+.settings-sidebar {
+  padding: 1rem 0;
+  align-self: start;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.settings-nav-item:hover {
+  background: rgba(var(--theme-overlay-color), 0.03);
+  color: var(--color-text-main);
+}
+
+.settings-nav-item.active {
+  background: var(--color-primary-subtle);
+  border-left-color: var(--color-primary);
+  color: var(--color-primary-light);
+  box-shadow: inset 3px 0 8px rgba(var(--color-primary-rgb), 0.08);
+}
+
+.settings-nav-item svg {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  transition: all var(--transition-fast);
+}
+.settings-nav-item.active svg {
+  opacity: 1;
+}
+.settings-nav-item:hover svg {
+  opacity: 0.9;
+}
+
+/* ── Content Area ── */
+.settings-content {
+  padding: 2rem;
+}
+
+.settings-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-main);
+}
+
+.form-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-surface-border);
+  transition: all var(--transition-fast);
+}
+.form-toggle:last-of-type {
+  border-bottom: none;
+}
+.form-toggle:hover {
+  background: rgba(var(--theme-overlay-color), 0.015);
+  margin: 0 -0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: var(--border-radius-sm);
+}
+
+/* ── Toggle Switch — Premium ── */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(var(--theme-overlay-color), 0.1);
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--color-text-muted);
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+}
+input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.25);
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px var(--color-primary);
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-surface-border);
+}
+
+@media (max-width: 768px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Range Slider — Premium ── */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  background: rgba(var(--theme-overlay-color), 0.06);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.range-slider:hover {
+  background: rgba(var(--theme-overlay-color), 0.1);
+}
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.4);
+  transition: box-shadow 0.2s ease;
+}
+.range-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(var(--color-primary-rgb), 0.6);
+  transform: scale(1.1);
+}
+.range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.4);
+}
+
+/* ── Filter Pills (reused in Localization tab) ── */
+.settings-section .filter-pill {
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-surface-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+.settings-section .filter-pill:hover {
+  border-color: var(--color-surface-border-hover);
+  color: var(--color-text-main);
+}
+.settings-section .filter-pill.active {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+}

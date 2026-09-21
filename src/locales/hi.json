@@ -1,0 +1,29 @@
+{
+  "translation": {
+    "sidebar": {
+      "dashboard": "डैशबोर्ड",
+      "new_screening": "नई स्क्रीनिंग",
+      "patients": "मरीज़",
+      "simulink": "सिमुलिंक रिसोर्स मॉडल",
+      "validation": "क्लिनिकल वैलिडेशन",
+      "settings": "सेटिंग्स",
+      "logout": "लॉग आउट",
+      "collapse": "साइडबार छिपाएं"
+    },
+    "header": {
+      "app_name": "रेटिना विज़न",
+      "light_mode": "लाइट मोड",
+      "dark_mode": "डार्क मोड",
+      "language": "भाषा",
+      "titles": {
+        "dashboard": "डैशबोर्ड",
+        "new_screening": "नई स्क्रीनिंग",
+        "patients": "मरीज़",
+        "simulink": "सिमुलिंक मॉडल",
+        "validation": "क्लिनिकल वैलिडेशन",
+        "settings": "सेटिंग्स",
+        "results": "विश्लेषण परिणाम"
+      }
+    }
+  }
+}

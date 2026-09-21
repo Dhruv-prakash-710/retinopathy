@@ -1,0 +1,29 @@
+{
+  "translation": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "new_screening": "New Screening",
+      "patients": "Patients",
+      "simulink": "Simulink Resource Model",
+      "validation": "Clinical Validation",
+      "settings": "Settings",
+      "logout": "Logout",
+      "collapse": "Collapse Sidebar"
+    },
+    "header": {
+      "app_name": "RetinaVision",
+      "light_mode": "Switch to Light Mode",
+      "dark_mode": "Switch to Dark Mode",
+      "language": "Language",
+      "titles": {
+        "dashboard": "Dashboard",
+        "new_screening": "New Screening",
+        "patients": "Patients",
+        "simulink": "Simulink Model",
+        "validation": "Clinical Validation",
+        "settings": "Settings",
+        "results": "Analysis Results"
+      }
+    }
+  }
+}

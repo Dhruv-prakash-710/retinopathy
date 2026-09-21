@@ -1,0 +1,84 @@
+{
+    "quality": {
+        "grade": "Gradeable",
+        "focusScore": 92.4,
+        "meanIntensity": 140.2,
+        "fovRatio": 80.5,
+        "illuminationUniformity": 88.1,
+        "hasArtifacts": false,
+        "noiseLevel": 12.3,
+        "compositeFocus": 91.0,
+        "status": "Gradeable"
+    },
+    "landmarks": {
+        "odDetected": true,
+        "odConfidence": 0.95,
+        "foveaDetected": true,
+        "foveaConfidence": 0.91
+    },
+    "vessels": {
+        "density": 0.12,
+        "meanTortuosity": 1.45,
+        "branchingPoints": 120
+    },
+    "lesions": {
+        "microaneurysms": 28,
+        "hardExudates": 14,
+        "softExudates": 6,
+        "hemorrhages": {
+            "dot": 12,
+            "blot": 4,
+            "flame": 2,
+            "total": 18
+        },
+        "neovascularization": {
+            "nvdDetected": false,
+            "nveDetected": false,
+            "totalScore": 0.1
+        }
+    },
+    "grading": {
+        "level": 3,
+        "label": "Severe NPDR",
+        "confidence": 94.5,
+        "referable": true,
+        "recommendedAction": "URGENT: Refer within 1-2 weeks",
+        "perLevel": [
+            {"level": 0, "label": "No DR", "probability": 0.1},
+            {"level": 1, "label": "Mild NPDR", "probability": 0.4},
+            {"level": 2, "label": "Moderate NPDR", "probability": 2.1},
+            {"level": 3, "label": "Severe NPDR", "probability": 94.5},
+            {"level": 4, "label": "Proliferative DR", "probability": 2.9}
+        ],
+        "calibration": "Well Calibrated",
+        "ece": 0.015,
+        "sensitivity": 93.1,
+        "specificity": 87.4,
+        "cnnLevel": 3,
+        "ruleLevel": 3,
+        "fusionNote": "CNN and ICDR rule-based assessment agree",
+        "icdrCriteria": {
+            "microaneurysmsPresent": true,
+            "hardExudatesPresent": true,
+            "softExudatesPresent": true,
+            "hemorrhagesPresent": true,
+            "neovascularizationPresent": false
+        }
+    },
+    "explainability": {
+        "clinicalUsefulness": 91.2,
+        "usefulnessRating": "Highly Useful",
+        "pathologyOverlap": 82.4,
+        "attentionPrecision": 74.5
+    },
+    "report": {
+        "urgency": "URGENT",
+        "keyFindings": [
+            "28 microaneurysms detected",
+            "14 hard exudates",
+            "6 cotton-wool spots",
+            "18 hemorrhages"
+        ]
+    },
+    "processingTime": 28.5
+}

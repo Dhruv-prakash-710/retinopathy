@@ -1,0 +1,85 @@
+{
+    "quality": {
+        "grade": "Gradeable",
+        "focusScore": 89.5,
+        "meanIntensity": 145.2,
+        "fovRatio": 81.0,
+        "illuminationUniformity": 87.5,
+        "hasArtifacts": true,
+        "noiseLevel": 15.2,
+        "compositeFocus": 88.0,
+        "status": "Gradeable"
+    },
+    "landmarks": {
+        "odDetected": true,
+        "odConfidence": 0.94,
+        "foveaDetected": true,
+        "foveaConfidence": 0.82
+    },
+    "vessels": {
+        "density": 0.16,
+        "meanTortuosity": 1.75,
+        "branchingPoints": 180
+    },
+    "lesions": {
+        "microaneurysms": 42,
+        "hardExudates": 18,
+        "softExudates": 11,
+        "hemorrhages": {
+            "dot": 15,
+            "blot": 8,
+            "flame": 5,
+            "total": 28
+        },
+        "neovascularization": {
+            "nvdDetected": true,
+            "nveDetected": true,
+            "totalScore": 0.85
+        }
+    },
+    "grading": {
+        "level": 4,
+        "label": "Proliferative DR",
+        "confidence": 97.8,
+        "referable": true,
+        "recommendedAction": "CRITICAL: Immediate referral to retina specialist",
+        "perLevel": [
+            {"level": 0, "label": "No DR", "probability": 0.0},
+            {"level": 1, "label": "Mild NPDR", "probability": 0.1},
+            {"level": 2, "label": "Moderate NPDR", "probability": 0.5},
+            {"level": 3, "label": "Severe NPDR", "probability": 1.6},
+            {"level": 4, "label": "Proliferative DR", "probability": 97.8}
+        ],
+        "calibration": "Well Calibrated",
+        "ece": 0.012,
+        "sensitivity": 95.5,
+        "specificity": 91.2,
+        "cnnLevel": 4,
+        "ruleLevel": 4,
+        "fusionNote": "CNN and ICDR rule-based assessment agree",
+        "icdrCriteria": {
+            "microaneurysmsPresent": true,
+            "hardExudatesPresent": true,
+            "softExudatesPresent": true,
+            "hemorrhagesPresent": true,
+            "neovascularizationPresent": true
+        }
+    },
+    "explainability": {
+        "clinicalUsefulness": 96.5,
+        "usefulnessRating": "Highly Useful",
+        "pathologyOverlap": 89.4,
+        "attentionPrecision": 81.2
+    },
+    "report": {
+        "urgency": "CRITICAL",
+        "keyFindings": [
+            "42 microaneurysms detected",
+            "18 hard exudates",
+            "11 cotton-wool spots",
+            "28 hemorrhages",
+            "Neovascularization detected"
+        ]
+    },
+    "processingTime": 29.8
+}

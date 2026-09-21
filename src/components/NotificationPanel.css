@@ -1,0 +1,179 @@
+/* ══════════════════════════════════════════════
+   NOTIFICATION PANEL — Premium Glassmorphic
+   ══════════════════════════════════════════════ */
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-bell {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.notification-bell:hover {
+  background: var(--color-surface);
+  color: var(--color-text-main);
+}
+
+.notification-badge-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-danger), #DC2626);
+  color: white;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 0 0 2px var(--color-bg-elevated), 0 0 8px rgba(239, 68, 68, 0.4);
+  animation: pulse 2s infinite;
+}
+
+/* ── Dropdown — Glassmorphic ── */
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 380px;
+  max-height: 480px;
+  background: rgba(17, 25, 54, 0.92); /* Less transparent for dark theme */
+  backdrop-filter: blur(32px) saturate(2);
+  -webkit-backdrop-filter: blur(32px) saturate(2);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeInUp 0.2s ease;
+}
+
+[data-theme="light"] .notification-dropdown {
+  background: rgba(255, 255, 255, 0.96); /* Less transparent for light theme */
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-surface-border);
+}
+.notif-header h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.notif-mark-all {
+  background: none;
+  border: none;
+  color: var(--color-primary-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+.notif-mark-all:hover {
+  background: var(--color-primary-subtle);
+}
+
+.notif-list {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid rgba(var(--theme-overlay-color), 0.04);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.notif-item:hover {
+  background: rgba(var(--color-primary-rgb), 0.04);
+}
+.notif-item.unread {
+  background: rgba(var(--color-primary-rgb), 0.04);
+  border-left-color: var(--color-primary);
+}
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-type-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--theme-overlay-color), 0.03);
+}
+
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+.notif-title {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--color-text-main);
+  margin-bottom: 2px;
+}
+.notif-message {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.notif-time {
+  font-size: 0.6875rem;
+  color: var(--color-text-dim);
+  margin-top: 4px;
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 4px;
+  box-shadow: 0 0 6px rgba(var(--color-primary-rgb), 0.4);
+}
+
+.notif-item.notif-urgent .notif-title {
+  color: var(--color-danger);
+}
+.notif-item.notif-urgent {
+  border-left-color: var(--color-danger);
+}
+
+@media (max-width: 480px) {
+  .notification-dropdown {
+    width: calc(100vw - 2rem);
+    right: -1rem;
+  }
+}

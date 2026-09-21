@@ -1,0 +1,79 @@
+{
+    "quality": {
+        "grade": "Gradeable",
+        "focusScore": 95.1,
+        "meanIntensity": 128.5,
+        "fovRatio": 82.1,
+        "illuminationUniformity": 91.2,
+        "hasArtifacts": false,
+        "noiseLevel": 8.4,
+        "compositeFocus": 94.0,
+        "status": "Gradeable"
+    },
+    "landmarks": {
+        "odDetected": true,
+        "odConfidence": 0.98,
+        "foveaDetected": true,
+        "foveaConfidence": 0.94
+    },
+    "vessels": {
+        "density": 0.11,
+        "meanTortuosity": 1.25,
+        "branchingPoints": 95
+    },
+    "lesions": {
+        "microaneurysms": 0,
+        "hardExudates": 0,
+        "softExudates": 0,
+        "hemorrhages": {
+            "dot": 0,
+            "blot": 0,
+            "flame": 0,
+            "total": 0
+        },
+        "neovascularization": {
+            "nvdDetected": false,
+            "nveDetected": false,
+            "totalScore": 0.0
+        }
+    },
+    "grading": {
+        "level": 0,
+        "label": "No DR",
+        "confidence": 98.2,
+        "referable": false,
+        "recommendedAction": "Routine screening in 12 months",
+        "perLevel": [
+            {"level": 0, "label": "No DR", "probability": 98.2},
+            {"level": 1, "label": "Mild NPDR", "probability": 1.5},
+            {"level": 2, "label": "Moderate NPDR", "probability": 0.2},
+            {"level": 3, "label": "Severe NPDR", "probability": 0.1},
+            {"level": 4, "label": "Proliferative DR", "probability": 0.0}
+        ],
+        "calibration": "Well Calibrated",
+        "ece": 0.005,
+        "sensitivity": 96.1,
+        "specificity": 92.4,
+        "cnnLevel": 0,
+        "ruleLevel": 0,
+        "fusionNote": "CNN and ICDR rule-based assessment agree",
+        "icdrCriteria": {
+            "microaneurysmsPresent": false,
+            "hardExudatesPresent": false,
+            "softExudatesPresent": false,
+            "hemorrhagesPresent": false,
+            "neovascularizationPresent": false
+        }
+    },
+    "explainability": {
+        "clinicalUsefulness": 95.0,
+        "usefulnessRating": "Highly Useful",
+        "pathologyOverlap": 0.0,
+        "attentionPrecision": 85.0
+    },
+    "report": {
+        "urgency": "ROUTINE FOLLOW-UP",
+        "keyFindings": []
+    },
+    "processingTime": 29.1
+}

@@ -1,0 +1,83 @@
+{
+    "quality": {
+        "grade": "Gradeable",
+        "focusScore": 91.2,
+        "meanIntensity": 138.4,
+        "fovRatio": 82.1,
+        "illuminationUniformity": 89.0,
+        "hasArtifacts": false,
+        "noiseLevel": 11.5,
+        "compositeFocus": 90.0,
+        "status": "Gradeable"
+    },
+    "landmarks": {
+        "odDetected": true,
+        "odConfidence": 0.96,
+        "foveaDetected": true,
+        "foveaConfidence": 0.88
+    },
+    "vessels": {
+        "density": 0.13,
+        "meanTortuosity": 1.30,
+        "branchingPoints": 110
+    },
+    "lesions": {
+        "microaneurysms": 12,
+        "hardExudates": 4,
+        "softExudates": 1,
+        "hemorrhages": {
+            "dot": 5,
+            "blot": 1,
+            "flame": 0,
+            "total": 6
+        },
+        "neovascularization": {
+            "nvdDetected": false,
+            "nveDetected": false,
+            "totalScore": 0.02
+        }
+    },
+    "grading": {
+        "level": 2,
+        "label": "Moderate NPDR",
+        "confidence": 92.5,
+        "referable": true,
+        "recommendedAction": "Refer to ophthalmologist within 4-8 weeks",
+        "perLevel": [
+            {"level": 0, "label": "No DR", "probability": 2.1},
+            {"level": 1, "label": "Mild NPDR", "probability": 10.4},
+            {"level": 2, "label": "Moderate NPDR", "probability": 92.5},
+            {"level": 3, "label": "Severe NPDR", "probability": 4.8},
+            {"level": 4, "label": "Proliferative DR", "probability": 0.1}
+        ],
+        "calibration": "Well Calibrated",
+        "ece": 0.022,
+        "sensitivity": 94.0,
+        "specificity": 88.5,
+        "cnnLevel": 2,
+        "ruleLevel": 2,
+        "fusionNote": "CNN and ICDR rule-based assessment agree",
+        "icdrCriteria": {
+            "microaneurysmsPresent": true,
+            "hardExudatesPresent": true,
+            "softExudatesPresent": false,
+            "hemorrhagesPresent": true,
+            "neovascularizationPresent": false
+        }
+    },
+    "explainability": {
+        "clinicalUsefulness": 85.0,
+        "usefulnessRating": "Highly Useful",
+        "pathologyOverlap": 72.4,
+        "attentionPrecision": 65.8
+    },
+    "report": {
+        "urgency": "ROUTINE REFERRAL",
+        "keyFindings": [
+            "12 microaneurysms detected",
+            "4 hard exudates",
+            "6 hemorrhages"
+        ]
+    },
+    "processingTime": 29.5
+}
