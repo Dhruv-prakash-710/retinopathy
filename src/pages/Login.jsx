@@ -94,8 +94,8 @@ export default function Login() {
         <div className="hero-logo-row" style={{animation: 'fadeInUp 0.6s ease-out'}}>
           <div className="hero-logo"><IconEye /></div>
           <div className="hero-logo-text">
-            <span className="hero-logo-name">Drishti RetinaVision</span>
-            <span className="hero-logo-sub">By Team RetinaX</span>
+            <span className="hero-logo-name">RetinaVision</span>
+            <span className="hero-logo-sub">DR Screening Pipeline</span>
           </div>
         </div>
 
@@ -220,6 +220,11 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+            <p className="text-dim text-sm" style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Idea Title: AI-Powered Diabetic Retinopathy Screening</p>
+            <p className="text-dim text-sm">Built by Team Dhruv</p>
+          </div>
         </div>
       </div>
     </div>
