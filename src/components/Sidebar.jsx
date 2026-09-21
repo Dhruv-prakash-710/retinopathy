@@ -75,8 +75,8 @@ export default function Sidebar({ isOpen }) {
       <div className="sidebar-header">
         <div className="logo-mark"><IconEye /></div>
         <div className="sidebar-brand">
-          <span className="sidebar-brand-name">RetinaVision</span>
-          <span className="sidebar-brand-sub">DR Screening Pipeline</span>
+          <span className="sidebar-brand-name">Drishti RetinaVision</span>
+          <span className="sidebar-brand-sub">By Team RetinaX</span>
         </div>
       </div>
 

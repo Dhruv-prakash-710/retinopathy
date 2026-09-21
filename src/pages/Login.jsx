@@ -94,8 +94,8 @@ export default function Login() {
         <div className="hero-logo-row" style={{animation: 'fadeInUp 0.6s ease-out'}}>
           <div className="hero-logo"><IconEye /></div>
           <div className="hero-logo-text">
-            <span className="hero-logo-name">RetinaVision</span>
-            <span className="hero-logo-sub">DR Screening Pipeline</span>
+            <span className="hero-logo-name">Drishti RetinaVision</span>
+            <span className="hero-logo-sub">By Team RetinaX</span>
           </div>
         </div>
 
