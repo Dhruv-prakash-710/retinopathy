@@ -173,6 +173,129 @@ function [vesselMask, vesselMetrics] = segment_vessels(enhancedGreen, odMask)
     vesselMetrics.totalVesselPixels = sum(vesselMask(:));
     vesselMetrics.skeletonLength = sum(bwThin(:));
 
+    %% ══════════════════════════════════════════════════════════════
+    %  Step 8: VENOUS BEADING DETECTION
+    %  Venous beading in ≥2 quadrants is an ICDR criterion for Severe NPDR
+    %  Beading = caliber variation along vessel centerline (CV > threshold)
+    %% ══════════════════════════════════════════════════════════════
+    vesselMetrics.venousBeadingScore = 0;
+    vesselMetrics.venousBeadingCount = 0;
+    vesselMetrics.beadingPerQuadrant = [0, 0, 0, 0];
+
+    % Compute local vessel width along skeleton
+    distMap = bwdist(~bw);  % Distance transform — values = half-width
+    skelWidths = distMap .* double(bwThin);  % Width at each skeleton pixel
+
+    % Analyze width variation along each vessel segment
+    cc_skel = bwconncomp(bwThin);
+    beadingSegments = 0;
+
+    for i = 1:min(cc_skel.NumObjects, 100)
+        segPixels = cc_skel.PixelIdxList{i};
+        if length(segPixels) < 20
+            continue;  % Too short to assess beading
+        end
+
+        widths = distMap(segPixels);
+        widths = widths(widths > 0);
+
+        if length(widths) > 10
+            % Coefficient of Variation along the segment
+            cv = std(widths) / (mean(widths) + eps);
+
+            % Beading threshold: CV > 0.25 suggests irregular caliber
+            if cv > 0.25 && mean(widths) > 2  % Only for larger vessels (veins)
+                beadingSegments = beadingSegments + 1;
+
+                % Determine quadrant of this segment
+                [segR, segC] = ind2sub(size(bwThin), segPixels);
+                meanR = mean(segR); meanC = mean(segC);
+                midR = rows / 2; midC = cols / 2;
+
+                if meanR <= midR && meanC >= midC
+                    vesselMetrics.beadingPerQuadrant(1) = vesselMetrics.beadingPerQuadrant(1) + 1;
+                elseif meanR <= midR && meanC < midC
+                    vesselMetrics.beadingPerQuadrant(2) = vesselMetrics.beadingPerQuadrant(2) + 1;
+                elseif meanR > midR && meanC >= midC
+                    vesselMetrics.beadingPerQuadrant(3) = vesselMetrics.beadingPerQuadrant(3) + 1;
+                else
+                    vesselMetrics.beadingPerQuadrant(4) = vesselMetrics.beadingPerQuadrant(4) + 1;
+                end
+            end
+        end
+    end
+
+    vesselMetrics.venousBeadingCount = beadingSegments;
+    vesselMetrics.venousBeadingScore = min(beadingSegments / 10, 1.0);
+
+    %% ══════════════════════════════════════════════════════════════
+    %  Step 9: ARTERIOVENOUS (A/V) CLASSIFICATION
+    %  Separate arterioles (brighter, thinner) from venules (darker, wider)
+    %% ══════════════════════════════════════════════════════════════
+    % Intensity-based A/V separation
+    vesselIntensities = imgDouble(vesselMask);
+    vesselWidthValues = distMap(vesselMask);
+
+    if ~isempty(vesselIntensities) && length(vesselIntensities) > 50
+        % Use median split: brighter vessels tend to be arterioles
+        medianIntensity = median(vesselIntensities);
+
+        arteryMask = vesselMask & (imgDouble > medianIntensity);
+        veinMask = vesselMask & (imgDouble <= medianIntensity);
+
+        arteryArea = sum(arteryMask(:));
+        veinArea = sum(veinMask(:));
+
+        vesselMetrics.avRatio = round(arteryArea / (veinArea + eps), 3);
+        vesselMetrics.arteryPixels = arteryArea;
+        vesselMetrics.veinPixels = veinArea;
+
+        % Mean width comparison
+        arteryWidths = distMap(arteryMask);
+        veinWidths = distMap(veinMask);
+        vesselMetrics.meanArteryWidth = round(mean(arteryWidths(arteryWidths > 0)), 2);
+        vesselMetrics.meanVeinWidth = round(mean(veinWidths(veinWidths > 0)), 2);
+    else
+        vesselMetrics.avRatio = 1.0;
+        vesselMetrics.arteryPixels = 0;
+        vesselMetrics.veinPixels = 0;
+        vesselMetrics.meanArteryWidth = 0;
+        vesselMetrics.meanVeinWidth = 0;
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  Step 10: CUP-TO-DISC RATIO (CDR) ESTIMATION
+    %  Basic CDR for glaucoma co-screening (bonus clinical value)
+    %  Uses brightness thresholding within OD mask
+    %% ══════════════════════════════════════════════════════════════
+    if any(odMask(:))
+        odRegion = imgDouble;
+        odRegion(~odMask) = 0;
+
+        % The optic cup is the brighter central region within the OD
+        odPixels = imgDouble(odMask);
+        cupThreshold = prctile(odPixels, 75);  % Top 25% brightest pixels = cup
+
+        cupMask = odMask & (imgDouble > cupThreshold);
+        cupMask = imfill(cupMask, 'holes');
+        cupMask = bwareaopen(cupMask, round(sum(odMask(:)) * 0.05));
+
+        cupArea = sum(cupMask(:));
+        discArea = sum(odMask(:));
+
+        if discArea > 0
+            vesselMetrics.cdr = round(sqrt(cupArea / discArea), 3);  % Vertical CDR approximation
+        else
+            vesselMetrics.cdr = 0;
+        end
+
+        % CDR > 0.6 is suspicious for glaucoma
+        vesselMetrics.glaucomaSuspect = vesselMetrics.cdr > 0.6;
+    else
+        vesselMetrics.cdr = 0;
+        vesselMetrics.glaucomaSuspect = false;
+    end
+
 end
 
 %% ══════════════════════════════════════════════════════════════

@@ -184,6 +184,73 @@ function [heatmap, gradcamDetails] = generate_gradcam(enhancedImg, modelPath, le
         gradcamDetails.usefulnessRating = 'Limited Usefulness';
     end
 
+    %% ══════════════════════════════════════════════════════════════
+    %  7. ATTENTION COHERENCE SCORE
+    %  Measures how focused vs scattered the attention is
+    %  Concentrated attention → more clinically interpretable
+    %% ══════════════════════════════════════════════════════════════
+    % Entropy-based coherence: low entropy = focused, high entropy = scattered
+    heatFlat = heatmap(:) + eps;
+    heatNorm = heatFlat / sum(heatFlat);
+    entropy = -sum(heatNorm .* log2(heatNorm));
+    maxEntropy = log2(numel(heatmap));
+
+    coherenceScore = 1 - (entropy / maxEntropy);
+    gradcamDetails.attentionCoherence = round(coherenceScore * 100, 1);
+
+    if coherenceScore > 0.7
+        gradcamDetails.coherenceRating = 'Highly Focused';
+    elseif coherenceScore > 0.4
+        gradcamDetails.coherenceRating = 'Moderately Focused';
+    else
+        gradcamDetails.coherenceRating = 'Scattered';
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  8. PER-LESION EVIDENCE SENTENCES
+    %  Link each Grad-CAM hotspot to detected pathology for
+    %  clinically meaningful explanations
+    %% ══════════════════════════════════════════════════════════════
+    evidenceSentences = {};
+
+    for i = 1:length(lesionTypes)
+        maskName = lesionTypes{i};
+        if isfield(lesionMasks, maskName)
+            mask = lesionMasks.(maskName);
+            if ~isequal(size(mask), size(heatmap))
+                mask = imresize(mask, size(heatmap), 'nearest') > 0;
+            end
+
+            if sum(mask(:)) > 0 && evidenceCorrelation(i).overlapRatio > 0.3
+                % Find the centroid of the overlap region
+                overlapRegion = mask & hotRegion;
+                if any(overlapRegion(:))
+                    stats = regionprops(overlapRegion, heatmap, 'WeightedCentroid', 'Area');
+                    if ~isempty(stats)
+                        [~, maxIdx] = max([stats.Area]);
+                        wc = stats(maxIdx).WeightedCentroid;
+                        sentence = sprintf('Model attention at (%.0f, %.0f) correlates with detected %s (%.0f%% overlap)', ...
+                            wc(2), wc(1), lesionLabels{i}, evidenceCorrelation(i).overlapRatio * 100);
+                        evidenceSentences{end+1} = sentence;
+                    end
+                end
+            elseif sum(mask(:)) > 0 && evidenceCorrelation(i).overlapRatio < 0.1
+                evidenceSentences{end+1} = sprintf('WARNING: %s detected but model attention is NOT focused on these regions', lesionLabels{i});
+            end
+        end
+    end
+
+    % Add summary sentence
+    if usefulnessScore > 0.7
+        evidenceSentences{end+1} = 'Overall: Grad-CAM attention aligns well with clinical pathology — high interpretability.';
+    elseif usefulnessScore > 0.4
+        evidenceSentences{end+1} = 'Overall: Partial alignment between model attention and pathology — review recommended.';
+    else
+        evidenceSentences{end+1} = 'Overall: Poor alignment between model attention and pathology — manual review required.';
+    end
+
+    gradcamDetails.evidenceSentences = evidenceSentences;
+
 end
 
 %% ══════════════════════════════════════════════════════════════

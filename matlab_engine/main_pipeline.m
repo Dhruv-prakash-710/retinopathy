@@ -1,19 +1,20 @@
 function [results] = main_pipeline(imagePath)
 % MAIN_PIPELINE Complete Retinal Image Analysis Pipeline for DR Screening.
 %   Integrates all analysis modules: quality assessment, enhancement,
-%   segmentation, lesion detection, DR grading, and explainability.
+%   segmentation, lesion detection, DME, IRMA, DR grading, explainability,
+%   and annotated visual report generation.
 %
 %   results = main_pipeline('path/to/fundus.jpg')
 
     disp('═══════════════════════════════════════════════════════════');
-    disp('  RETINAVISION — DR SCREENING PIPELINE v2.4.1');
+    disp('  RETINAVISION — DR SCREENING PIPELINE v2.5.0');
     disp('═══════════════════════════════════════════════════════════');
     tic;
 
     %% ══════════════════════════════════════════════════════════════
     %  1. LOAD IMAGE
     %% ══════════════════════════════════════════════════════════════
-    disp('[1/9] Loading image...');
+    disp('[1/12] Loading image...');
     try
         img = imread(imagePath);
     catch ME
@@ -27,7 +28,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  1b. IMAGE MODALITY VALIDATION
     %% ══════════════════════════════════════════════════════════════
-    disp('[1.5/9] Validating Image Modality...');
+    disp('[1.5/12] Validating Image Modality...');
     [isValidFundus, invalidReason] = validate_fundus(img);
     
     if ~isValidFundus
@@ -43,7 +44,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  2. IMAGE QUALITY ASSESSMENT (3-tier grading)
     %% ══════════════════════════════════════════════════════════════
-    disp('[2/9] Image Quality Assessment...');
+    disp('[2/12] Image Quality Assessment...');
     [qualityGrade, qualityMetrics, qualityFeedback] = assess_quality(img);
 
     results.qualityGrade = qualityGrade;
@@ -67,7 +68,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  3. IMAGE ENHANCEMENT (adaptive based on quality)
     %% ══════════════════════════════════════════════════════════════
-    disp('[3/9] Adaptive Enhancement (CLAHE, illumination norm, denoising)...');
+    disp('[3/12] Adaptive Enhancement (CLAHE, illumination norm, denoising)...');
     [enhancedRGB, enhancedGreen] = enhance_fundus(img, qualityGrade);
 
     results.enhancedRGB = enhancedRGB;
@@ -80,7 +81,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  4. OPTIC DISC LOCALIZATION
     %% ══════════════════════════════════════════════════════════════
-    disp('[4/9] Optic Disc & Fovea Localization...');
+    disp('[4/12] Optic Disc & Fovea Localization...');
     [odMask, odCenter, odRadius, odConfidence] = localize_optic_disc(enhancedGreen);
 
     results.odMask = odMask;
@@ -104,7 +105,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  5. VESSEL SEGMENTATION
     %% ══════════════════════════════════════════════════════════════
-    disp('[5/9] Multi-scale Vessel Segmentation...');
+    disp('[5/12] Multi-scale Vessel Segmentation...');
     [vesselMask, vesselMetrics] = segment_vessels(enhancedGreen, odMask);
 
     results.vesselMask = vesselMask;
@@ -116,7 +117,7 @@ function [results] = main_pipeline(imagePath)
     %% ══════════════════════════════════════════════════════════════
     %  6. LESION DETECTION (all types)
     %% ══════════════════════════════════════════════════════════════
-    disp('[6/9] Comprehensive Lesion Detection...');
+    disp('[6/12] Comprehensive Lesion Detection...');
     results.lesions = struct();
 
     % Microaneurysms (sub-pixel detection)
@@ -160,12 +161,78 @@ function [results] = main_pipeline(imagePath)
     end
 
     %% ══════════════════════════════════════════════════════════════
-    %  7. DR SEVERITY GRADING
+    %  6.5. DIABETIC MACULAR EDEMA (DME) DETECTION
     %% ══════════════════════════════════════════════════════════════
-    disp('[7/9] DR Severity Grading (CNN + ICDR rules)...');
+    disp('[7/12] Diabetic Macular Edema Detection...');
+    try
+        [dmeMask, dmeDetails] = detect_dme(hardExMask, hemMask, foveaCenter, odRadius, maculaMask);
+        results.dmeMask = dmeMask;
+        results.dmeDetails = dmeDetails;
+
+        fprintf('       DME: %s', dmeDetails.severity);
+        if dmeDetails.csme
+            fprintf(' (CSME DETECTED)');
+        end
+        fprintf('\n');
+        if dmeDetails.referralRequired
+            fprintf('       ⚠ DME Referral: %s\n', dmeDetails.referralUrgency);
+        end
+    catch ME
+        disp(['       ⚠ DME detection failed: ' ME.message]);
+        results.dmeDetails = struct('detected', false, 'severity', 'Unknown', ...
+            'csme', false, 'referralRequired', false);
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  6.6. IRMA DETECTION
+    %% ══════════════════════════════════════════════════════════════
+    disp('[8/12] IRMA (Intraretinal Microvascular Abnormalities) Detection...');
+    try
+        [irmaMask, irmaDetails] = detect_irma(enhancedGreen, vesselMask, odMask, odCenter, odRadius, foveaCenter);
+        results.irmaMask = irmaMask;
+        results.irmaDetails = irmaDetails;
+        results.lesions.irma = irmaDetails;
+
+        if irmaDetails.totalCount > 0
+            fprintf('       IRMA: %d regions detected (any quadrant: %s)\n', ...
+                irmaDetails.totalCount, string(irmaDetails.anyQuadrantPositive));
+        else
+            disp('       No IRMA detected');
+        end
+    catch ME
+        disp(['       ⚠ IRMA detection failed: ' ME.message]);
+        results.irmaDetails = struct('totalCount', 0, 'totalScore', 0, 'anyQuadrantPositive', false);
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  7. QUADRANT-LEVEL HEMORRHAGE COUNTING
+    %  Required for proper ICDR 4-2-1 rule
+    %% ══════════════════════════════════════════════════════════════
+    [rows, cols] = size(enhancedGreen);
+    midRow = round((odCenter(1) + foveaCenter(1)) / 2);
+    midCol = round((odCenter(2) + foveaCenter(2)) / 2);
+    [X, Y] = meshgrid(1:cols, 1:rows);
+
+    quadMasks = cell(4, 1);
+    quadMasks{1} = Y <= midRow & X >= midCol;
+    quadMasks{2} = Y <= midRow & X < midCol;
+    quadMasks{3} = Y > midRow & X >= midCol;
+    quadMasks{4} = Y > midRow & X < midCol;
+
+    hemPerQuadrant = zeros(1, 4);
+    for q = 1:4
+        hemInQ = hemMask & quadMasks{q};
+        cc_q = bwconncomp(hemInQ);
+        hemPerQuadrant(q) = cc_q.NumObjects;
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  8. DR SEVERITY GRADING (with full 4-2-1 rule data)
+    %% ══════════════════════════════════════════════════════════════
+    disp('[9/12] DR Severity Grading (CNN + ICDR 4-2-1 rule)...');
     modelPath = fullfile(fileparts(mfilename('fullpath')), 'trained_dr_model.mat');
 
-    % Prepare lesion counts for rule-based verification
+    % Prepare lesion counts with quadrant-level data
     lesionCounts = struct();
     lesionCounts.ma = maCount;
     lesionCounts.hardExudates = exDetails.hardExudates.count;
@@ -174,6 +241,16 @@ function [results] = main_pipeline(imagePath)
     lesionCounts.blotHemorrhages = hemDetails.blotHemorrhages.count;
     lesionCounts.flameHemorrhages = hemDetails.flameHemorrhages.count;
     lesionCounts.nvScore = nvDetails.totalScore;
+
+    % Quadrant-level data for ICDR 4-2-1 rule
+    lesionCounts.hemorrhagesPerQuadrant = hemPerQuadrant;
+    lesionCounts.irmaAnyQuadrant = results.irmaDetails.anyQuadrantPositive;
+    lesionCounts.irmaCount = results.irmaDetails.totalCount;
+    if isfield(results, 'vesselMetrics') && isfield(results.vesselMetrics, 'beadingPerQuadrant')
+        lesionCounts.venousBeadingPerQuadrant = results.vesselMetrics.beadingPerQuadrant;
+    else
+        lesionCounts.venousBeadingPerQuadrant = [0 0 0 0];
+    end
 
     try
         [severityLevel, confidence, referable, gradeDetails] = ...
@@ -189,7 +266,6 @@ function [results] = main_pipeline(imagePath)
         disp(['       ⚠ Could not grade: ' ME.message]);
         disp('       Using rule-based grading only...');
 
-        % Fallback: use rule-based grading from lesion counts
         results.grading = struct();
         results.grading.level = getRuleBasedLevel(lesionCounts);
         results.grading.label = getDRLabel(results.grading.level);
@@ -199,10 +275,20 @@ function [results] = main_pipeline(imagePath)
         results.grading.fusionNote = 'Rule-based grading only (model unavailable)';
     end
 
+    % DME is an INDEPENDENT referral criterion
+    if isfield(results, 'dmeDetails') && results.dmeDetails.referralRequired
+        results.dmeReferral = true;
+        if ~results.grading.referable
+            disp('       ⚠ DME referral OVERRIDES non-referable DR grade');
+        end
+    else
+        results.dmeReferral = false;
+    end
+
     %% ══════════════════════════════════════════════════════════════
-    %  8. EXPLAINABILITY (Grad-CAM + evidence correlation)
+    %  9. EXPLAINABILITY (Grad-CAM + evidence correlation)
     %% ══════════════════════════════════════════════════════════════
-    disp('[8/9] Generating Grad-CAM & Evidence Correlation...');
+    disp('[10/12] Generating Grad-CAM & Evidence Correlation...');
 
     lesionMasks = struct();
     lesionMasks.maMask = maMask;
@@ -217,16 +303,34 @@ function [results] = main_pipeline(imagePath)
         results.gradcamDetails = gradcamDetails;
         fprintf('       Grad-CAM usefulness: %s (%.1f%%)\n', ...
             gradcamDetails.usefulnessRating, gradcamDetails.clinicalUsefulness);
+        if isfield(gradcamDetails, 'attentionCoherence')
+            fprintf('       Attention coherence: %s (%.1f%%)\n', ...
+                gradcamDetails.coherenceRating, gradcamDetails.attentionCoherence);
+        end
     catch ME
         disp(['       ⚠ Grad-CAM failed: ' ME.message]);
         results.gradcam = zeros(size(enhancedGreen));
-        results.gradcamDetails = struct('clinicalUsefulness', 0, 'usefulnessRating', 'Unavailable');
+        results.gradcamDetails = struct('clinicalUsefulness', 0, ...
+            'usefulnessRating', 'Unavailable', 'evidenceSentences', {{}});
     end
 
     %% ══════════════════════════════════════════════════════════════
-    %  9. CLINICAL REPORT GENERATION
+    %  10. ANNOTATED VISUAL REPORT
     %% ══════════════════════════════════════════════════════════════
-    disp('[9/9] Compiling Clinical Report...');
+    disp('[11/12] Generating Annotated Visual Report...');
+    try
+        [annotatedImg, overlayDetails] = generate_annotated_overlay(img, results);
+        results.annotatedOverlay = annotatedImg;
+        results.overlayDetails = overlayDetails;
+        fprintf('       Annotated overlay: %d annotations drawn\n', overlayDetails.totalAnnotations);
+    catch ME
+        disp(['       ⚠ Annotated overlay failed: ' ME.message]);
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  11. CLINICAL REPORT GENERATION
+    %% ══════════════════════════════════════════════════════════════
+    disp('[12/12] Compiling Clinical Report...');
     results.clinicalReport = generate_clinical_report(results);
     results.status = 'Completed';
     results.processingTime = toc;
@@ -234,6 +338,16 @@ function [results] = main_pipeline(imagePath)
     disp('═══════════════════════════════════════════════════════════');
     fprintf('  PIPELINE COMPLETE — %.1f seconds\n', results.processingTime);
     fprintf('  Diagnosis: Level %d — %s\n', results.grading.level, results.grading.label);
+    if isfield(results, 'dmeDetails') && results.dmeDetails.detected
+        fprintf('  DME: %s', results.dmeDetails.severity);
+        if results.dmeDetails.csme
+            fprintf(' (CSME)');
+        end
+        fprintf('\n');
+    end
+    if results.dmeReferral && ~results.grading.referable
+        disp('  ⚠ INDEPENDENT DME REFERRAL — even though DR is non-referable');
+    end
     disp('═══════════════════════════════════════════════════════════');
 
 end

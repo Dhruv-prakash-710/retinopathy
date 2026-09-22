@@ -165,6 +165,37 @@ function create_simulink_model()
         'Text', 'DR Telemedicine Screening Pipeline — Resource Allocation Model (RetinaVision v2.4.1)');
 
     %% ══════════════════════════════════════════════════════════════
+    %  ADDITIONAL SUBSYSTEMS
+    %% ══════════════════════════════════════════════════════════════
+
+    %% ── Seasonal Variation Subsystem ──
+    % Model monsoon season effects: higher no-show rates, lower throughput
+    add_block('simulink/Sources/Sine Wave', [mdlName '/Seasonal_Variation']);
+    set_param([mdlName '/Seasonal_Variation'], ...
+        'Amplitude', '0.15', ...
+        'Frequency', num2str(2*pi/(365*24*3600)), ...  % Annual cycle
+        'Bias', '1.0', ...
+        'Position', num2str([x, y+240, x+w, y+240+h]));
+
+    %% ── Multi-Tier Escalation Subsystem ──
+    % Non-referable cases → PHC report (no escalation)
+    % Referable Level 2 → District Hospital review
+    % Referable Level 3-4 → Tertiary Center urgent referral
+    add_block('simulink/Math Operations/Gain', [mdlName '/District_Referral']);
+    set_param([mdlName '/District_Referral'], ...
+        'Gain', '0.12', ...
+        'Position', num2str([x-130, y+80, x-130+w, y+80+h]));
+
+    add_block('simulink/Math Operations/Gain', [mdlName '/Tertiary_Urgent']);
+    set_param([mdlName '/Tertiary_Urgent'], ...
+        'Gain', '0.06', ...
+        'Position', num2str([x-130, y+130, x-130+w, y+130+h]));
+
+    % Connect multi-tier paths
+    add_line(mdlName, 'GPU_Processing/1', 'District_Referral/1', 'autorouting', 'smart');
+    add_line(mdlName, 'GPU_Processing/1', 'Tertiary_Urgent/1', 'autorouting', 'smart');
+
+    %% ══════════════════════════════════════════════════════════════
     %  SAVE MODEL
     %% ══════════════════════════════════════════════════════════════
     save_system(mdlName);
@@ -175,6 +206,140 @@ function create_simulink_model()
     disp('  1. Modify parameters in workspace (e.g., NUM_PHCS = 10)');
     disp('  2. sim(''DR_Telemedicine_Workflow'')');
     disp('  3. View Throughput_Monitor and Queue_Monitor scopes');
+    disp(' ');
+    disp('For capacity optimization:');
+    disp('  results = run_monte_carlo_optimization(1000)');
     disp('═══════════════════════════════════════════════════════════');
+
+end
+
+%% ══════════════════════════════════════════════════════════════
+%  MONTE CARLO OPTIMIZATION
+%  Randomize parameters across N runs to find optimal resource
+%  allocation for 100,000+ patients annually
+%% ══════════════════════════════════════════════════════════════
+function results = run_monte_carlo_optimization(numRuns)
+% RUN_MONTE_CARLO_OPTIMIZATION Find optimal resource allocation.
+%   Sweeps key parameters (NUM_PHCS, NUM_DOCTORS, GPU capacity, bandwidth)
+%   across N randomized configurations and identifies the most efficient
+%   setup for serving 100K+ patients per year.
+%
+%   results = run_monte_carlo_optimization(1000)
+
+    if nargin < 1
+        numRuns = 500;
+    end
+
+    disp('═══════════════════════════════════════════════════════════');
+    disp('  MONTE CARLO RESOURCE OPTIMIZATION');
+    fprintf('  Running %d configurations...\n', numRuns);
+    disp('═══════════════════════════════════════════════════════════');
+
+    % Parameter search space
+    results = struct();
+    results.configs = struct('numPHCs', {}, 'imagesPerPHC', {}, ...
+        'numDoctors', {}, 'bandwidth', {}, 'gpuCapacity', {}, ...
+        'annualCapacity', {}, 'costIndex', {}, 'efficiency', {});
+
+    targetAnnualPatients = 100000;
+    operatingDaysPerYear = 300;  % Typical working days
+    operatingHoursPerDay = 8;
+
+    bestEfficiency = 0;
+    bestConfig = [];
+
+    for run = 1:numRuns
+        % Randomize parameters
+        numPHCs = randi([4, 20]);
+        imagesPerPHC = randi([30, 100]);
+        numDoctors = randi([1, 8]);
+        bandwidth = 1.0 + rand() * 9.0;  % 1-10 Mbps
+        gpuCapacity = randi([100, 500]);
+        reviewTimeSec = 20 + rand() * 20;  % 20-40 seconds per review
+        qualityPassRate = 0.85 + rand() * 0.12;
+        referableDRRate = 0.10 + rand() * 0.15;
+
+        % Compute throughput bottleneck
+        dailyImages = numPHCs * imagesPerPHC;
+        passedImages = dailyImages * qualityPassRate;
+
+        % Network bottleneck (images per hour)
+        imageSizeMB = 5;
+        networkThroughput = (bandwidth * 3600) / (imageSizeMB * 8);  % images/hour
+
+        % GPU bottleneck (images per hour)
+        gpuThroughput = gpuCapacity;
+
+        % Doctor bottleneck (referable cases per hour)
+        referableCases = passedImages * referableDRRate;
+        doctorCapacityPerHour = numDoctors * (3600 / reviewTimeSec);
+        doctorCapacityPerDay = doctorCapacityPerHour * operatingHoursPerDay;
+
+        % Overall throughput = minimum of all bottlenecks
+        networkDaily = networkThroughput * operatingHoursPerDay;
+        gpuDaily = gpuThroughput * operatingHoursPerDay;
+
+        % Effective daily throughput
+        effectiveDaily = min([dailyImages, networkDaily, gpuDaily]);
+
+        % Check if doctors can handle referrals
+        doctorSufficient = doctorCapacityPerDay >= referableCases;
+
+        % Annual capacity
+        annualCapacity = effectiveDaily * operatingDaysPerYear;
+
+        % Cost index (simplified: more resources = higher cost)
+        costIndex = numPHCs * 10 + numDoctors * 50 + bandwidth * 5 + gpuCapacity * 0.2;
+
+        % Efficiency = patients per cost unit
+        efficiency = annualCapacity / costIndex;
+
+        % Store configuration
+        results.configs(run).numPHCs = numPHCs;
+        results.configs(run).imagesPerPHC = imagesPerPHC;
+        results.configs(run).numDoctors = numDoctors;
+        results.configs(run).bandwidth = round(bandwidth, 1);
+        results.configs(run).gpuCapacity = gpuCapacity;
+        results.configs(run).annualCapacity = round(annualCapacity);
+        results.configs(run).costIndex = round(costIndex, 1);
+        results.configs(run).efficiency = round(efficiency, 2);
+        results.configs(run).meetsTarget = annualCapacity >= targetAnnualPatients && doctorSufficient;
+
+        % Identify bottleneck
+        [~, bottleneckIdx] = min([dailyImages, networkDaily, gpuDaily]);
+        bottleneckNames = {'Image_Acquisition', 'Network_Bandwidth', 'GPU_Processing'};
+        results.configs(run).bottleneck = bottleneckNames{bottleneckIdx};
+
+        if annualCapacity >= targetAnnualPatients && doctorSufficient && efficiency > bestEfficiency
+            bestEfficiency = efficiency;
+            bestConfig = results.configs(run);
+        end
+    end
+
+    % Store best configuration
+    if ~isempty(bestConfig)
+        results.optimal = bestConfig;
+        fprintf('\n  OPTIMAL CONFIGURATION:\n');
+        fprintf('    PHCs: %d, Doctors: %d, Bandwidth: %.1f Mbps, GPU: %d/hr\n', ...
+            bestConfig.numPHCs, bestConfig.numDoctors, bestConfig.bandwidth, bestConfig.gpuCapacity);
+        fprintf('    Annual Capacity: %d patients (target: %d)\n', ...
+            bestConfig.annualCapacity, targetAnnualPatients);
+        fprintf('    Bottleneck: %s\n', bestConfig.bottleneck);
+        fprintf('    Cost-Efficiency: %.2f patients/cost-unit\n', bestConfig.efficiency);
+    else
+        disp('  ⚠ No configuration met the 100K target — increase resource ranges');
+        results.optimal = [];
+    end
+
+    % Summary statistics
+    allCapacities = [results.configs.annualCapacity];
+    metTarget = sum([results.configs.meetsTarget]);
+    fprintf('\n  Summary: %d/%d configs meet target (%.0f%%)\n', ...
+        metTarget, numRuns, metTarget/numRuns*100);
+    fprintf('  Capacity range: %d — %d patients/year\n', min(allCapacities), max(allCapacities));
+    disp('═══════════════════════════════════════════════════════════');
+
+    results.targetAnnualPatients = targetAnnualPatients;
+    results.numRuns = numRuns;
 
 end

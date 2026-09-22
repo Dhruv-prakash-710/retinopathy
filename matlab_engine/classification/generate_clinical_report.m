@@ -167,7 +167,118 @@ function [report] = generate_clinical_report(results)
     %  8. VESSEL ANALYSIS
     %% ══════════════════════════════════════════════════════════════
     if isfield(results, 'vesselMetrics')
-        report.vessels = results.vesselMetrics;
+        report.vessels = struct();
+        report.vessels.density = results.vesselMetrics.density;
+        report.vessels.meanTortuosity = results.vesselMetrics.meanTortuosity;
+        report.vessels.branchingPoints = results.vesselMetrics.branchingPoints;
+
+        % New vessel metrics
+        if isfield(results.vesselMetrics, 'avRatio')
+            report.vessels.avRatio = results.vesselMetrics.avRatio;
+        end
+        if isfield(results.vesselMetrics, 'venousBeadingScore')
+            report.vessels.venousBeadingScore = results.vesselMetrics.venousBeadingScore;
+            report.vessels.venousBeadingCount = results.vesselMetrics.venousBeadingCount;
+            report.vessels.beadingPerQuadrant = results.vesselMetrics.beadingPerQuadrant;
+        end
+        if isfield(results.vesselMetrics, 'cdr')
+            report.vessels.cupToDiscRatio = results.vesselMetrics.cdr;
+            report.vessels.glaucomaSuspect = results.vesselMetrics.glaucomaSuspect;
+        end
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  9. DME (DIABETIC MACULAR EDEMA) FINDINGS
+    %% ══════════════════════════════════════════════════════════════
+    if isfield(results, 'dmeDetails')
+        report.dme = struct();
+        report.dme.detected = results.dmeDetails.detected;
+        report.dme.severity = results.dmeDetails.severity;
+        report.dme.csme = results.dmeDetails.csme;
+        report.dme.centralInvolvement = results.dmeDetails.centralInvolvement;
+        report.dme.centralThicknessProxy = results.dmeDetails.centralThicknessProxy;
+        report.dme.referralRequired = results.dmeDetails.referralRequired;
+
+        if results.dmeDetails.csme
+            report.dme.csmeReason = results.dmeDetails.csmeReason;
+        end
+
+        if results.dmeDetails.detected
+            report.dme.exudatesInMacula = results.dmeDetails.exudatesInMacula;
+            report.dme.hemorrhagesInMacula = results.dmeDetails.hemorrhagesInMacula;
+        end
+
+        % Add DME to key findings
+        if isfield(report, 'summary') && isfield(report.summary, 'keyFindings')
+            if results.dmeDetails.csme
+                report.summary.keyFindings{end+1} = sprintf('CSME detected — %s', results.dmeDetails.severity);
+            elseif results.dmeDetails.detected
+                report.summary.keyFindings{end+1} = sprintf('DME: %s', results.dmeDetails.severity);
+            end
+        end
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  10. IRMA FINDINGS
+    %% ══════════════════════════════════════════════════════════════
+    if isfield(results, 'irmaDetails')
+        report.irma = struct();
+        report.irma.totalCount = results.irmaDetails.totalCount;
+        report.irma.totalScore = results.irmaDetails.totalScore;
+        report.irma.anyQuadrantPositive = results.irmaDetails.anyQuadrantPositive;
+        report.irma.perQuadrant = results.irmaDetails.perQuadrant;
+
+        if results.irmaDetails.totalCount > 0 && isfield(report, 'summary') && isfield(report.summary, 'keyFindings')
+            report.summary.keyFindings{end+1} = sprintf('IRMA detected: %d regions', results.irmaDetails.totalCount);
+        end
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  11. ICDR 4-2-1 RULE DETAILS
+    %% ══════════════════════════════════════════════════════════════
+    if isfield(results, 'grading') && isfield(results.grading, 'rule421')
+        report.rule421 = results.grading.rule421;
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  12. EVIDENCE SENTENCES (from Grad-CAM correlation)
+    %% ══════════════════════════════════════════════════════════════
+    if isfield(results, 'gradcamDetails') && isfield(results.gradcamDetails, 'evidenceSentences')
+        report.evidenceSentences = results.gradcamDetails.evidenceSentences;
+    end
+
+    %% ══════════════════════════════════════════════════════════════
+    %  13. VALIDATION TIMER
+    %  Estimate if the report can be reviewed by an ophthalmologist
+    %  in under 30 seconds (target from requirements)
+    %% ══════════════════════════════════════════════════════════════
+    report.validationTimer = struct();
+
+    % Count information items that need review
+    infoItems = 0;
+    infoItems = infoItems + 1;  % Primary diagnosis
+    infoItems = infoItems + 1;  % Confidence
+    infoItems = infoItems + 1;  % Referral recommendation
+
+    if isfield(report, 'summary') && isfield(report.summary, 'keyFindings')
+        infoItems = infoItems + length(report.summary.keyFindings);
+    end
+    if isfield(report, 'dme') && report.dme.detected
+        infoItems = infoItems + 2;  % DME severity + CSME
+    end
+
+    % Estimated review time: ~2 seconds per info item + 5 seconds for image
+    estimatedReviewSeconds = infoItems * 2 + 5;
+
+    report.validationTimer.estimatedReviewSeconds = estimatedReviewSeconds;
+    report.validationTimer.meetsTarget = estimatedReviewSeconds <= 30;
+    report.validationTimer.targetSeconds = 30;
+    report.validationTimer.infoItemCount = infoItems;
+
+    if estimatedReviewSeconds <= 30
+        report.validationTimer.status = 'PASS — Report can be validated within 30 seconds';
+    else
+        report.validationTimer.status = sprintf('WARNING — Estimated review time: %d seconds (exceeds 30s target)', estimatedReviewSeconds);
     end
 
 end
