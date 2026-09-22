@@ -46,8 +46,8 @@ const ROLE_PRESETS = {
 
 export default function Login() {
   const [selectedRole, setSelectedRole] = useState('phc_operator');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(ROLE_PRESETS['phc_operator'].username);
+  const [password, setPassword] = useState(ROLE_PRESETS['phc_operator'].password);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
